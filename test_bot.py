@@ -1,6 +1,6 @@
 import unittest
 
-from bot import build_expenses_table
+from bot import ExpensesTrackerBot, build_expenses_table
 
 
 class BuildExpensesTableTests(unittest.TestCase):
@@ -12,11 +12,14 @@ class BuildExpensesTableTests(unittest.TestCase):
 
         table = build_expenses_table(rows)
 
-        self.assertIn("ID", table)
-        self.assertIn("Groceries", table)
-        self.assertIn("42.50", table)
-        self.assertIn("Transport", table)
-        self.assertIn("15.00", table)
+        self.assertIsNotNone(table)
+        self.assertTrue(table.getvalue().startswith(b"\x89PNG"))
+        self.assertGreater(len(table.getvalue()), 100)
+
+    def test_bot_class_stores_token(self):
+        bot = ExpensesTrackerBot(token="test-token")
+
+        self.assertEqual(bot.token, "test-token")
 
 
 if __name__ == "__main__":

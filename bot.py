@@ -8,8 +8,6 @@ from matplotlib import pyplot as plt
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-from main import get_latest_expenses
-
 matplotlib.use("Agg")
 
 # Load environment variables from the .env file
@@ -70,32 +68,45 @@ def build_expenses_table(expenses):
     return buffer
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send the latest 10 expenses as an image when the user sends /start."""
-    try:
-        expenses = get_latest_expenses(limit=10)
-        image = build_expenses_table(expenses)
+class ExpensesTrackerBot:
+    """Telegram bot entry point for the expense tracker."""
 
-        if image is None:
-            await update.message.reply_text("No expenses found yet.")
-            return
+    def __init__(self, token: str | None = None):
+        self.token = token or os.getenv("TELEGRAM_BOT_TOKEN")
+        self.application = None
 
-        await update.message.reply_photo(photo=image)
-    except Exception as exc:
-        logging.exception("Failed to send latest expenses image")
-        await update.message.reply_text(f"Something went wrong: {exc}")
+    def build(self):
+        if not self.token:
+            raise RuntimeError("TELEGRAM_BOT_TOKEN is not set.")
+
+        self.application = ApplicationBuilder().token(self.token).build()
+        self.application.add_handler(CommandHandler("start", self.start))
+        return self.application
+
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Send the latest 10 expenses as an image when the user sends /start."""
+        try:
+            from main import get_latest_expenses
+
+            expenses = get_latest_expenses(limit=10)
+            image = build_expenses_table(expenses)
+
+            if image is None:
+                await update.message.reply_text("No expenses found yet.")
+                return
+
+            await update.message.reply_photo(photo=image)
+        except Exception as exc:
+            logging.exception("Failed to send latest expenses image")
+            await update.message.reply_text(f"Something went wrong: {exc}")
+
+    def run(self) -> None:
+        if not self.token:
+            raise RuntimeError("TELEGRAM_BOT_TOKEN is not set.")
+
+        self.application = self.build()
+        logging.info("Bot started. Polling for updates...")
+        self.application.run_polling()
 
 
-def main() -> None:
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    if not token:
-        raise RuntimeError("TELEGRAM_BOT_TOKEN is not set.")
-
-    application = ApplicationBuilder().token(token).build()
-    application.add_handler(CommandHandler("start", start))
-    logging.info("Bot started. Polling for updates...")
-    application.run_polling()
-
-
-if __name__ == "__main__":
-    main()
+Bot = ExpensesTrackerBot
