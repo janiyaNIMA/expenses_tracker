@@ -30,17 +30,16 @@ A Flask API and Telegram bot for tracking expenses from a PostgreSQL database.
 
 ## Setup
 
-1. Create and activate a virtual environment:
+1. Install `uv` if you do not already have it:
 
    ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
-2. Install dependencies:
+2. Create the project environment and install dependencies:
 
    ```bash
-   pip install -e .
+   uv sync
    ```
 
 3. Create a `.env` file based on `sample.env`:
@@ -55,7 +54,7 @@ A Flask API and Telegram bot for tracking expenses from a PostgreSQL database.
 ## Run locally
 
 ```bash
-python main.py
+uv run python main.py
 ```
 
 The API will be available at:
@@ -107,13 +106,11 @@ git clone <your-repository-url> expenses-tracker
 cd expenses-tracker
 ```
 
-### 3) Create a virtual environment and install dependencies
+### 3) Install dependencies with uv
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -U pip
-pip install -e .
+cd /opt/expenses-tracker
+uv sync
 ```
 
 ### 4) Configure environment variables
@@ -127,10 +124,10 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 
 ### 5) Start the app with PM2
 
-Create a PM2 ecosystem file or run directly:
+Run the app directly with `uv`:
 
 ```bash
-pm2 start "source .venv/bin/activate && python main.py" --name expenses-tracker
+pm2 start "cd /opt/expenses-tracker && uv run python main.py" --name expenses-tracker
 ```
 
 To keep it running after reboot:

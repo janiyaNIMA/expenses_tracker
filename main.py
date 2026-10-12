@@ -1,6 +1,6 @@
 import logging
+import multiprocessing
 import os
-import threading
 
 import psycopg2
 from dotenv import load_dotenv
@@ -58,10 +58,11 @@ def listen_to_bo() -> None:
     listen_to_bot()
 
 
-def start_bot_in_background() -> threading.Thread:
-    thread = threading.Thread(target=listen_to_bot, name="telegram-bot", daemon=True)
-    thread.start()
-    return thread
+def start_bot_in_background() -> multiprocessing.Process:
+    context = multiprocessing.get_context("fork")
+    process = context.Process(target=listen_to_bot, name="telegram-bot", daemon=True)
+    process.start()
+    return process
 
 
 if __name__ == "__main__":
