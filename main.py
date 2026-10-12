@@ -23,7 +23,7 @@ def get_db_connection():
     return psycopg2.connect(database_url)
 
 
-def get_latest_expenses(limit: int = 10):
+def get_latest_expenses(limit: int = 100):
     conn = get_db_connection()
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
